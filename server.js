@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql");
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const app = express();
 const PORT = 3000;
@@ -18,6 +19,12 @@ app.listen(PORT, () => {
 });
 
 app.use(express.json());
+
+// Funktion för att skapa en hash av lösenord
+function hash(data) {
+  const hashedData = crypto.createHash("sha256").update(data).digest("hex");
+  return hashedData;
+}
 
 // Funktion för att skapa en JWT-token
 function generateToken(userId) {
@@ -45,7 +52,7 @@ app.get("/users/:id", (req, res) => {
 
 app.post("/users", (req, res) => {
   let { username, password, name, email } = req.body;
-  let hashedPassword = hash(password); // hash funktion för att hasha lösenordet
+  let hashedPassword = hash(password); // Använt hash-funktionen för att hasha lösenordet
 
   let sql = `INSERT INTO users (username, password, name, email)
              VALUES ('${username}', '${hashedPassword}', '${name}', '${email}')`;
@@ -60,10 +67,10 @@ app.post("/users", (req, res) => {
   });
 });
 
-// 
+// //
 app.put("/users/:id", (req, res) => {
   let { username, password, name, email } = req.body;
-  let hashedPassword = hash(password); // hash funktion för att hasha lösenordet
+  let hashedPassword = hash(password); // Använt hash-funktionen för att hasha lösenordet
 
   let sql = `UPDATE users 
              SET username='${username}', password='${hashedPassword}', name='${name}', email='${email}'
@@ -99,11 +106,11 @@ app.post("/login", (req, res) => {
     let user = { id: result[0].id, username: result[0].username, name: result[0].name, email: result[0].email };
     let token = generateToken(user.id);
 
-    res.json({ user, token });
+    res.json({ message: `Välkommen, ${user.name}!`, token });
   });
 });
 
-// för att validera tokens
+// Middleware för att validera tokens
 function validateToken(req, res, next) {
   let token = req.header('Authorization');
 
@@ -123,10 +130,5 @@ function validateToken(req, res, next) {
   });
 }
 
-// la till för att validera tokens på relevanta routes
+//För att validera tokens på relevanta routes
 app.use(validateToken);
-
-  
- 
-  
-  
