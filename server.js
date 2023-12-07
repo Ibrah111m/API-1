@@ -15,7 +15,7 @@ const con = mysql.createConnection({
 });
 
 app.listen(PORT, () => {
-  console.log(`Servern körs på port ${PORT}`);
+  console.log(`Servern körs på ports ${PORT}`);
 });
 
 app.use(express.json());
