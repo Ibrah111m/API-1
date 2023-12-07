@@ -15,7 +15,7 @@ const con = mysql.createConnection({
 });
 
 app.listen(PORT, () => {
-  console.log(`Servern körs på ports ${PORT}`);
+  console.log(`Servern körs på port ${PORT}`);
 });
 
 app.use(express.json());
@@ -27,8 +27,8 @@ function hash(data) {
 }
 
 // Funktion för att skapa en JWT-token
-function generateToken(userId) {
-  return jwt.sign({ userId }, "EnHemlighetSomIngenKanGissaXyz123%&/", {
+function generateToken({ userId, name, email }) {
+  return jwt.sign({ userId, name, email }, "EnHemlighetSomIngenKanGissaXyz123%&/", {
     expiresIn: "2h",
   });
 }
@@ -46,6 +46,8 @@ function validateToken(req, res, next) {
   let decoded;
   try {
     decoded = jwt.verify(token, "EnHemlighetSomIngenKanGissaXyz123%&/");
+    console.log(decoded); 
+    console.log(`Tjena ${decoded.name}! Din mailadress är ${decoded.email}.`); 
   } catch (err) {
     console.log(err);
     res.status(401).send("Invalid auth token");
@@ -133,7 +135,10 @@ app.post("/login", (req, res) => {
       name: result[0].name,
       email: result[0].email,
     };
-    let token = generateToken(user.id);
+
+    console.log("user object:", user); 
+
+    let token = generateToken({ userId: user.id, name: user.name, email: user.email });
 
     res.json({ message: `Välkommen, ${user.name}!`, token });
   });
