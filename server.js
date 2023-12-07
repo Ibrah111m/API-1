@@ -28,11 +28,36 @@ function hash(data) {
 
 // Funktion för att skapa en JWT-token
 function generateToken(userId) {
-  return jwt.sign({ userId }, 'your_secret_key', { expiresIn: '2h' });
+  return jwt.sign({ userId }, "EnHemlighetSomIngenKanGissaXyz123%&/", {
+    expiresIn: "2h",
+  });
 }
 
-// 
-app.get("/users", (req, res) => {
+// Middleware för att validera tokens
+function validateToken(req, res, next) {
+  let authHeader = req.headers["authorization"];
+  if (authHeader === undefined) {
+    res.sendStatus(400); // "Bad request"
+    return;
+  }
+  let token = authHeader.slice(7); // tar bort "BEARER " från headern.
+
+  // avkodar token
+  let decoded;
+  try {
+    decoded = jwt.verify(token, "EnHemlighetSomIngenKanGissaXyz123%&/");
+  } catch (err) {
+    console.log(err);
+    res.status(401).send("Invalid auth token");
+    return;
+  }
+
+  req.user = decoded;
+  next();
+}
+
+// 1
+app.get("/users", validateToken, (req, res) => {
   let sql = "SELECT * FROM users";
   con.query(sql, (err, result, fields) => {
     res.send(result);
@@ -52,7 +77,7 @@ app.get("/users/:id", (req, res) => {
 
 app.post("/users", (req, res) => {
   let { username, password, name, email } = req.body;
-  let hashedPassword = hash(password); // Använt hash-funktionen för att hasha lösenordet
+  let hashedPassword = hash(password);
 
   let sql = `INSERT INTO users (username, password, name, email)
              VALUES ('${username}', '${hashedPassword}', '${name}', '${email}')`;
@@ -67,10 +92,10 @@ app.post("/users", (req, res) => {
   });
 });
 
-// //
-app.put("/users/:id", (req, res) => {
+// 2
+app.put("/users/:id", validateToken, (req, res) => {
   let { username, password, name, email } = req.body;
-  let hashedPassword = hash(password); // Använt hash-funktionen för att hasha lösenordet
+  let hashedPassword = hash(password);
 
   let sql = `UPDATE users 
              SET username='${username}', password='${hashedPassword}', name='${name}', email='${email}'
@@ -98,37 +123,18 @@ app.post("/login", (req, res) => {
     }
 
     if (result.length === 0 || result[0].password !== hash(password)) {
-      res.status(401).json({ error: 'Invalid username or password' });
+      res.status(401).json({ error: "Invalid username or password" });
       return;
     }
 
-    // Inloggning lyckades
-    let user = { id: result[0].id, username: result[0].username, name: result[0].name, email: result[0].email };
+    let user = {
+      id: result[0].id,
+      username: result[0].username,
+      name: result[0].name,
+      email: result[0].email,
+    };
     let token = generateToken(user.id);
 
     res.json({ message: `Välkommen, ${user.name}!`, token });
   });
 });
-
-// Middleware för att validera tokens
-function validateToken(req, res, next) {
-  let token = req.header('Authorization');
-
-  if (!token) {
-    res.status(401).json({ error: 'Token missing' });
-    return;
-  }
-
-  jwt.verify(token, 'your_secret_key', (err, decoded) => {
-    if (err) {
-      res.status(401).json({ error: 'Invalid token' });
-      return;
-    }
-
-    req.user = decoded;
-    next();
-  });
-}
-
-//För att validera tokens på relevanta routes
-app.use(validateToken);
