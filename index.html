@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Min första API server</title>
+</head>
+<body>
+  <h1>Välkommen till min server</h1>
+  <p>Denna server hanterar användarinformation och autentisering genom följande funktioner:</p>
+  <ul>
+    <li><strong>GET /users:</strong> Hämtar alla användare (kräver giltig JWT-token).</li>
+    <li><strong>GET /users/:id:</strong> Hämtar en specifik användare baserat på ID.</li>
+    <li><strong>POST /users:</strong> Skapar en ny användare med användarnamn, lösenord, namn och e-post.</li>
+    <li><strong>PUT /users/:id:</strong> Uppdaterar informationen för en befintlig användare (kräver giltig JWT-token).</li>
+    <li><strong>POST /login:</strong> Autentiserar användaren och genererar en JWT-token.</li>
+  </ul>
+  <p>För att testa och använda dessa funktioner, kan du använda verktyg som <strong>Insomnia</strong> för att skicka HTTP-förfrågningar. För att hantera databasen kan du använda <strong>MySQL</strong> för att utföra SQL-querys.</p>
+  <p> <strong>Lösenorden lagras som hashade värden i databasen för säkerhetens skull.</strong></p>
+</body>
+</html>

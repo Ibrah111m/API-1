@@ -18,6 +18,11 @@ app.listen(PORT, () => {
   console.log(`Servern körs på port ${PORT}`);
 });
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
+
+
 app.use(express.json());
 
 // Funktion för att skapa en hash av lösenord
