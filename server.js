@@ -1,23 +1,27 @@
-const express = require("express");
-const mysql = require("mysql");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
+const express = require("express"); // Importerar Express.js för att skapa server och definera endpoints.
+const mysql = require("mysql"); // Importerar MySQL för att interagera med databasen.
+const jwt = require("jsonwebtoken"); // Importerar JSON Web Token för autentisering.
+const crypto = require("crypto"); // Importerar Crypto för att skapa hash av lösenord.
 
 const app = express();
 const PORT = 3000;
 
+// Skapa en anslutning till MySQL-databasen
+
 const con = mysql.createConnection({
-  host: "localhost",
+  host: "localhost", // Anger databasvärden
   user: "root",
   password: "",
-  database: "jensen2023",
-  multipleStatements: true,
+  database: "jensen2023", // Namnet på min databas
+  multipleStatements: true, // Tillåter flera SQL-satser i en förfrågan
 });
 
+// Lyssna på angiven port och logga när servern är igång
 app.listen(PORT, () => {
   console.log(`Servern körs på port ${PORT}`);
 });
 
+// En enkel route för att skicka index.html
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
@@ -45,9 +49,9 @@ function validateToken(req, res, next) {
     res.sendStatus(400); // "Bad request"
     return;
   }
-  let token = authHeader.slice(7); // tar bort "BEARER " från headern.
+  let token = authHeader.slice(7); // Tar bort "BEARER " från headern.
 
-  // avkodar token
+  // Avkodar token
   let decoded;
   try {
     decoded = jwt.verify(token, "EnHemlighetSomIngenKanGissaXyz123%&/");
@@ -55,7 +59,7 @@ function validateToken(req, res, next) {
     console.log(`Tjena ${decoded.name}! Din mailadress är ${decoded.email}.`); 
   } catch (err) {
     console.log(err);
-    res.status(401).send("Invalid auth token");
+    res.status(401).send("Invalid auth token"); // Om token är ogiltig skicka ""
     return;
   }
 
@@ -63,7 +67,7 @@ function validateToken(req, res, next) {
   next();
 }
 
-// 1
+//  En endpoint för att hämta alla användare (skyddad med tokenvalidering)
 app.get("/users", validateToken, (req, res) => {
   let sql = "SELECT * FROM users";
   con.query(sql, (err, result, fields) => {
@@ -71,6 +75,7 @@ app.get("/users", validateToken, (req, res) => {
   });
 });
 
+// En endpoint för att hämta en specifik användare baserat på ID
 app.get("/users/:id", (req, res) => {
   let sql = `SELECT * FROM users WHERE id=${req.params.id}`;
   con.query(sql, (err, result, fields) => {
@@ -82,6 +87,7 @@ app.get("/users/:id", (req, res) => {
   });
 });
 
+// En endpoint för att skapa en ny användare
 app.post("/users", (req, res) => {
   let { username, password, name, email } = req.body;
   let hashedPassword = hash(password);
@@ -99,7 +105,7 @@ app.post("/users", (req, res) => {
   });
 });
 
-// 2
+//  En endpoint för att uppdatera en användares information (skyddad med tokenvalidering)
 app.put("/users/:id", validateToken, (req, res) => {
   let { username, password, name, email } = req.body;
   let hashedPassword = hash(password);
@@ -119,6 +125,7 @@ app.put("/users/:id", validateToken, (req, res) => {
   });
 });
 
+// En endpoint för att logga in och generera en JWT-token
 app.post("/login", (req, res) => {
   let { username, password } = req.body;
   let sql = `SELECT * FROM users WHERE username='${username}'`;
@@ -143,8 +150,8 @@ app.post("/login", (req, res) => {
 
     console.log("user object:", user); 
 
-    let token = generateToken({ userId: user.id, name: user.name, email: user.email });
+    let token = generateToken({ userId: user.id, name: user.name, email: user.email }); // Genererar en token för användaren
 
-    res.json({ message: `Välkommen, ${user.name}!`, token });
+    res.json({ message: `Välkommen, ${user.name}!`, token }); // Skickar välkomstmeddelande och JWT-token som JSON till klienten
   });
 });
